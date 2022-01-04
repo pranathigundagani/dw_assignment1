@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="5dcc48bf-cd49-423c-b739-cfc38dad0141" >
+		<http:listener-connection host="0.0.0.0" port="8083" />
+	</http:listener-config>
+	<flow name="groupbytask2" doc:id="eab70cc8-78dd-4552-a3d5-e61fdf734f03" initialState="stopped">
+		<http:listener doc:name="Listener" doc:id="e5350d3a-5e55-49f1-bece-d9a94cf0ba50" config-ref="HTTP_Listener_config" path="/groupby2"/>
+		<ee:transform doc:name="Transform Message" doc:id="ed421210-3af0-4fba-8c36-bab47d0b5b30" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+var myVar = { menu: {
+    header: "Move Items",
+    items: [
+        {"id": "internal"},
+        {"id": "left", "label": "Move Left"},
+        {"id": "right", "label": "Move Right"},
+        {"id": "up", "label": "Move Up"},
+        {"id": "down", "label": "Move Down"}
+    ]
+}}
+output application/json
+---
+(myVar.menu.items.*label groupBy "myLabel")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="assignment1Flow" doc:id="371342da-1600-45b2-83c9-2c1ee5fe25db" >
+		<http:listener doc:name="Listener" doc:id="f42da908-751a-4fa0-9d06-1c93e1a0d4ca" config-ref="HTTP_Listener_config" path="/map"/>
+		<ee:transform doc:name="Transform Message" doc:id="983670ac-4473-4305-8f2b-1f101ffbadaf" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+ payload.myns.bookstore.*book map
+  {
+     title: $.title,
+     author: $.author,
+     year: $.year,
+     price:$.price,
+     category:$.@category
+  }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="assignment1Flow1" doc:id="8f71a861-2476-4183-9668-cf61e1c2d387" >
+		<http:listener doc:name="Listener" doc:id="c20d0fa5-2485-498c-9fe6-a1ff4586cbb0" config-ref="HTTP_Listener_config" path="/map2"/>
+		<ee:transform doc:name="Transform Message" doc:id="9c87c6ae-812f-4d59-b881-2ab9cf855259" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map(value,index) -> {
+	"value" : value +1,
+	"index" : index
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
